@@ -62,7 +62,7 @@ func init() {
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/weather", weatherHandler)
+	mux.HandleFunc("/weather.json", weatherHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
