@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	//"runtime"
 )
 
 const (
@@ -63,6 +64,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/weather.json", weatherHandler)
+
+	mux.Handle("/", http.FileServer(http.Dir("/var/www")))
 
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

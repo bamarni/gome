@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta charset="utf-8">
+		<title>Gome</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <script src="./node_modules/systemjs/dist/system.src.js"></script>
+        <script src="./node_modules/angular2/bundles/angular2.dev.js"></script>
+        <script src="./node_modules/angular2/bundles/http.dev.js"></script>
+        <script>
+            System.config({
+                packages: {'app': {defaultExtension: 'js'}}
+            });
+            System.import('app/app').catch(console.log.bind(console));
+        </script>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="css/styles.css" rel="stylesheet">
+	</head>
+	<body>
+        <!-- http://www.bootply.com/download/90113 -->
+        <div class="container" id="main">
+            loading...
+        </div>
+	</body>
+</html>

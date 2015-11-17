@@ -1,5 +1,5 @@
 import {bootstrap, Component, NgIf, View} from 'angular2/angular2';
-import {HTTP_BINDINGS, Http} from 'angular2/http';
+import {HTTP_BINDINGS, Http, Response} from 'angular2/http';
 
 @Component({
     selector: 'div#main',
@@ -7,7 +7,7 @@ import {HTTP_BINDINGS, Http} from 'angular2/http';
 })
 
 @View({
-    templateUrl: './app.html',
+    templateUrl: './app/app.html',
     directives: [NgIf]
 })
 
@@ -18,9 +18,7 @@ export class App {
     constructor(http:Http) {
         this.refreshDate();
 
-        http.get('weather.json').toRx().subscribe(res => {
-            this.weather = res.json();
-        });
+        http.get('weather.json').map((res: Response) => res.json()).subscribe(res => this.weather = res);
     }
 
     refreshDate() {
@@ -34,9 +32,8 @@ export class App {
         return ("0" + this.time.getHours()).slice(-2) +
             ":" + ("0" + this.time.getMinutes()).slice(-2) +
             ":" + ("0" + this.time.getSeconds()).slice(-2)
-        ;
+            ;
     }
 }
 
-bootstrap(App)
-    .catch(err => console.error(err));
+bootstrap(App).catch(err => console.error(err));

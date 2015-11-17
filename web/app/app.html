@@ -12,6 +12,7 @@
     <div class="col-md-4 col-sm-6">
         <div class="well">
             <h1>{{getTime()}}</h1>
+            <h3 *ng-if="weather">{{weather.Timezone}}</h3>
         </div>
     </div>
     <div class="col-md-4 col-sm-6">
@@ -27,5 +28,3 @@
         </div>
     </div>
 </div>
-
-<!-- http://www.bootply.com/download/90113 -->
