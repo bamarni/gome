@@ -1,2 +1,5 @@
-web/app/app.js*
+build
+web/app/*.js
+web/app/*.map
+web/all.js
 web/node_modules/

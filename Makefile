@@ -6,35 +6,39 @@ VERSION ?= latest
 
 NAME = bamarni-gome
 INSTANCE ?= default
-PORTS = -p 80:8080
-VOLUMES = -v $(PWD)/web:/var/www
+PORTS = -p 80:80
 ENV = -e FORECAST_API_KEY
 
-.PHONY: build push shell run start stop rm release
+.PHONY: build push pull run stop rm
 
 build:
-	docker run --rm --name $(NAME)-node-$(INSTANCE) -v $(PWD)/web:/usr/src/app -w /usr/src/app node:4 /bin/sh -c "npm i && ./node_modules/.bin/tsc"
+	mkdir -p build
+
+	docker run --rm --name $(NAME)-$(INSTANCE)-node -v $(PWD)/web:/usr/src/app -w /usr/src/app \
+		node:4-slim /bin/sh -c "npm i && npm run tsc && npm run uglifyjs"
+
+	docker run --rm --name $(NAME)-$(INSTANCE)-golang -v $(PWD):/go/src/github.com/bamarni/gome -w /go/src/github.com/bamarni/gome \
+		golang:1 /bin/sh -c "go get && CGO_ENABLED=0 go build -o ./build/gome -a -ldflags '-s' ./gome.go"
+
+	docker create --name $(NAME)-$(INSTANCE)-jessie-curl buildpack-deps:jessie-curl &&\
+		docker cp $(NAME)-$(INSTANCE)-jessie-curl:/etc/ssl/certs/ca-certificates.crt ./build/ca-certificates.crt &&\
+		docker rm $(NAME)-$(INSTANCE)-jessie-curl
+
 	docker build -t $(NS)/$(REPO):$(VERSION) .
 
 push:
 	docker push $(NS)/$(REPO):$(VERSION)
 
-shell:
-	docker run --rm --name $(NAME)-$(INSTANCE) -i -t $(PORTS) $(VOLUMES) $(ENV) $(NS)/$(REPO):$(VERSION) /bin/bash
+pull:
+	docker pull $(NS)/$(REPO):$(VERSION)
 
 run:
-	docker run --rm --name $(NAME)-$(INSTANCE) $(PORTS) $(VOLUMES) $(ENV) $(NS)/$(REPO):$(VERSION)
-
-start:
-	docker run -d --name $(NAME)-$(INSTANCE) $(PORTS) $(VOLUMES) $(ENV) $(NS)/$(REPO):$(VERSION)
+	docker run --rm --name $(NAME)-$(INSTANCE) $(PORTS) $(ENV) $(NS)/$(REPO):$(VERSION)
 
 stop:
 	docker stop $(NAME)-$(INSTANCE)
 
 rm:
 	docker rm $(NAME)-$(INSTANCE)
-
-release: build
-	make push -e VERSION=$(VERSION)
 
 default: build

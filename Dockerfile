@@ -1,12 +1,7 @@
-FROM golang:1
+FROM scratch
 
-RUN mkdir /var/www
-VOLUME /var/www
+COPY build/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY build/gome /gome
+COPY web /web
 
-RUN mkdir -p /go/src/app
-WORKDIR /go/src/app
-COPY gome.go /go/src/app
-
-RUN go-wrapper download
-RUN go-wrapper install
-CMD ["go-wrapper", "run"]
+CMD ["/gome"]

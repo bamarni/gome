@@ -10,8 +10,13 @@ author: bootply.com
 */
 
 @import url(http://fonts.googleapis.com/css?family=Roboto:400);
+html {
+  height: 100%;
+}
 body {
-  background-color:#e0e0e0;
+  background-size: cover;
+  background-position: center center;
+  background-image: url('../img/backgrounds/1.jpg');
   -webkit-font-smoothing: antialiased;
   font: normal 14px Roboto,arial,sans-serif;
 }
@@ -69,12 +74,6 @@ h3,h4,h5 {
  border-bottom-width:1px;
  padding-bottom:10px;
 }
-.modal-dialog {
- width: 450px;
-}
-.modal-footer {
- border-width:0;
-}
 .dropdown-menu {
  background-color:#f4f4f4;
  border-color:#f0f0f0;
@@ -84,11 +83,6 @@ h3,h4,h5 {
 /* end theme */
 
 /* template layout*/
-#subnav {
- position:fixed;
- width:100%;
-}
-
 @media (max-width: 768px) {
  #subnav {
   padding-top: 6px;

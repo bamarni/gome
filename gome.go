@@ -65,7 +65,7 @@ func main() {
 
 	mux.HandleFunc("/weather.json", weatherHandler)
 
-	mux.Handle("/", http.FileServer(http.Dir("/var/www")))
+	mux.Handle("/", http.FileServer(http.Dir("/web")))
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":80", mux))
 }

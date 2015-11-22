@@ -1,11 +1,19 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>Weather</h4></div>
+        <div class="panel panel-default" *ng-if="weather">
+            <div class="panel-heading"><h4>{{weather.Summary}}</h4></div>
             <div class="panel-body">
-                <ul *ng-if="weather">
-                    {{weather.Temperature}}
-                </ul>
+                <div>
+                    <img style="float:left;height:64px;width:64px" src="img/weather/{{weather.Icon}}.png">
+                    <div style="padding-left:10px;float:left">
+                        <div style="float:left;margin-top:-3px;font-size:64px">
+                            {{weather.Temperature}}
+                        </div>
+                        <div style="float:left;font-size:16px;margin-top:6px">
+                            °C
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -17,12 +25,11 @@
     </div>
     <div class="col-md-4 col-sm-6">
         <div class="panel panel-default">
-            <div class="panel-heading"><h4>Portlet Heading</h4></div>
+            <div class="panel-heading"><h4>Public transportation</h4></div>
             <div class="panel-body">
                 <ul class="list-group">
-                    <li class="list-group-item">Bootply Playground</li>
-                    <li class="list-group-item">Bootstrap Editor</li>
-                    <li class="list-group-item">Bootstrap Templates</li>
+                    <li class="list-group-item">+5 minutes</li>
+                    <li class="list-group-item">+12 minutes</li>
                 </ul>
             </div>
         </div>
