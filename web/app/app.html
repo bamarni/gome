@@ -24,12 +24,13 @@
         </div>
     </div>
     <div class="col-md-4 col-sm-6">
-        <div class="panel panel-default">
-            <div class="panel-heading"><h4>Public transportation</h4></div>
+        <div class="panel panel-default" *ng-if="departures">
+            <div class="panel-heading"><h4>Bersarinplatz > Warschauer Str.</h4></div>
             <div class="panel-body">
                 <ul class="list-group">
-                    <li class="list-group-item">+5 minutes</li>
-                    <li class="list-group-item">+12 minutes</li>
+                    <li *ng-for="#departure of departures" class="list-group-item">
+                        {{departure.Time}}
+                    </li>
                 </ul>
             </div>
         </div>

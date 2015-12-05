@@ -7,7 +7,7 @@ VERSION ?= latest
 NAME = bamarni-gome
 INSTANCE ?= default
 PORTS = -p 80:80
-ENV = -e FORECAST_API_KEY
+ENV = -e FORECAST_API_KEY -e VBB_API_KEY
 
 .PHONY: build push pull run stop rm
 
@@ -22,6 +22,7 @@ build:
 
 	docker create --name $(NAME)-$(INSTANCE)-jessie-curl buildpack-deps:jessie-curl &&\
 		docker cp $(NAME)-$(INSTANCE)-jessie-curl:/etc/ssl/certs/ca-certificates.crt ./build/ca-certificates.crt &&\
+		docker cp $(NAME)-$(INSTANCE)-jessie-curl:/usr/share/zoneinfo/Europe/Berlin ./build/zoneinfo-berlin &&\
 		docker rm $(NAME)-$(INSTANCE)-jessie-curl
 
 	docker build -t $(NS)/$(REPO):$(VERSION) .

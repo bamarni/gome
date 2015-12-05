@@ -12,13 +12,15 @@ import {HTTP_BINDINGS, Http, Response} from 'angular2/http';
 })
 
 export class App {
-    weather: Object;
-    time: Date = new Date();
+    weather:    Object;
+    departures: Object;
+    time:       Date = new Date();
 
     constructor(http:Http) {
         this.refreshDate();
 
         http.get('weather.json').map((res: Response) => res.json()).subscribe(res => this.weather = res);
+        http.get('vbb.json').map((res: Response) => res.json()).subscribe(res => this.departures = res);
     }
 
     refreshDate() {
