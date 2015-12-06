@@ -2,24 +2,26 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/bamarni/gome/vbb"
 	forecast "github.com/mlbright/forecast/v2"
 	"log"
 	"net/http"
 	"os"
-	"github.com/bamarni/gome/vbb"
 	"time"
 )
 
-const (
-	location = "Europe/Berlin"
-	lat      = "52.5167"
-	long     = "13.4"
-)
+type AppConfig struct {
+	Location    string
+	Lat         string
+	Long        string
+	ForecastKey string
+	VbbKey      string
+}
 
-var (
-	forecastKey = os.Getenv("FORECAST_API_KEY")
-	vbbKey      = os.Getenv("VBB_API_KEY")
-)
+type AppHandler struct {
+	Config *AppConfig
+	Handle func(e *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error)
+}
 
 type Weather struct {
 	Timezone    string
@@ -42,11 +44,22 @@ func Round(val float64) int {
 	return int(val + 0.5)
 }
 
-func weatherHandler(w http.ResponseWriter, r *http.Request) {
-	f, err := forecast.Get(forecastKey, lat, long, "now", forecast.CA)
+func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+	data, err := h.Handle(h.Config, w, r)
+	if err == nil {
+		err = json.NewEncoder(w).Encode(data)
+	}
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 internal server error", http.StatusInternalServerError)
+	}
+}
+
+func weatherHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	f, err := forecast.Get(config.ForecastKey, config.Lat, config.Long, "now", forecast.CA)
+	if err != nil {
+		return nil, err
 	}
 
 	weather := Weather{
@@ -56,55 +69,47 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 		Round(f.Currently.Temperature),
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(weather); err != nil {
-		panic(err)
-	}
+	return weather, nil
 }
 
-func vbbHandler(w http.ResponseWriter, r *http.Request) {
-	depBoard, err := vbb.Get(vbbKey)
-
+func vbbHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	depBoard, err := vbb.Get(config.VbbKey)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	loc, _     := time.LoadLocation(location)
+	loc, _ := time.LoadLocation(config.Location)
 	timeLayout := "2006-01-02 15:04:05"
 
 	var deps []Departure
 	for _, dep := range depBoard.Departures[0:3] {
-		Time, _     := time.ParseInLocation(timeLayout, dep.Date + " " + dep.Time, loc)
-		realTime, _ := time.ParseInLocation(timeLayout, dep.RtDate + " " + dep.RtTime, loc)
-		delay       := realTime.Sub(Time).Minutes()
-		dep         := Departure{Time.Format("15:04"), int(delay)}
-		deps         = append(deps, dep)
+		Time, _ := time.ParseInLocation(timeLayout, dep.Date+" "+dep.Time, loc)
+		realTime, _ := time.ParseInLocation(timeLayout, dep.RtDate+" "+dep.RtTime, loc)
+		delay := realTime.Sub(Time).Minutes()
+		dep := Departure{Time.Format("15:04"), int(delay)}
+		deps = append(deps, dep)
 	}
 
-	if err := json.NewEncoder(w).Encode(deps); err != nil {
-		panic(err)
-	}
-}
-
-func init() {
-	if forecastKey == "" {
-		log.Fatal("$FORECAST_API_KEY is not set")
-	}
-	if vbbKey == "" {
-		log.Fatal("$VBB_API_KEY is not set")
-	}
+	return deps, nil
 }
 
 func main() {
+	appConfig := &AppConfig{
+		Location:    "Europe/Berlin",
+		Lat:         "52.5167",
+		Long:        "13.4",
+		ForecastKey: os.Getenv("FORECAST_API_KEY"),
+		VbbKey:      os.Getenv("VBB_API_KEY"),
+	}
+
+	if appConfig.ForecastKey == "" || appConfig.VbbKey == "" {
+		log.Fatal("$FORECAST_API_KEY and $VBB_API_KEY must be set")
+	}
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/weather.json", weatherHandler)
-
-	mux.HandleFunc("/vbb.json", vbbHandler)
-
+	mux.Handle("/weather.json", AppHandler{appConfig, weatherHandler})
+	mux.Handle("/vbb.json", AppHandler{appConfig, vbbHandler})
 	mux.Handle("/", http.FileServer(http.Dir("/web")))
 
 	log.Fatal(http.ListenAndServe(":80", mux))
