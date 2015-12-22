@@ -1,18 +1,12 @@
 <div class="row">
     <div class="col-md-4 col-sm-6">
-        <div class="panel panel-default" *ng-if="weather">
+        <div class="panel panel-default" *ngIf="weather">
             <div class="panel-heading"><h4>{{weather.Summary}}</h4></div>
-            <div class="panel-body">
-                <div>
-                    <img style="float:left;height:64px;width:64px" src="img/weather/{{weather.Icon}}.png">
-                    <div style="padding-left:10px;float:left">
-                        <div style="float:left;margin-top:-3px;font-size:64px">
-                            {{weather.Temperature}}
-                        </div>
-                        <div style="float:left;font-size:16px;margin-top:6px">
-                            °C
-                        </div>
-                    </div>
+            <div class="panel-body weather">
+                <img src="img/weather/{{weather.Icon}}.png">
+                <div class="weather-content">
+                    <div class="temperature">{{weather.Temperature}}</div>
+                    <div class="unit">{{weather.Unit}}</div>
                 </div>
             </div>
         </div>
@@ -20,19 +14,24 @@
     <div class="col-md-4 col-sm-6">
         <div class="well">
             <h1>{{getTime()}}</h1>
-            <h3 *ng-if="weather">{{weather.Timezone}}</h3>
+            <h3 *ngIf="weather">{{weather.Timezone}}</h3>
         </div>
     </div>
     <div class="col-md-4 col-sm-6">
-        <div class="panel panel-default" *ng-if="departures">
+        <div class="panel panel-default" *ngIf="departures">
             <div class="panel-heading"><h4>Bersarinplatz > Warschauer Str.</h4></div>
             <div class="panel-body">
                 <ul class="list-group">
-                    <li *ng-for="#departure of departures" class="list-group-item">
+                    <li *ngFor="#departure of departures" class="list-group-item">
                         {{departure.Time}}
                     </li>
                 </ul>
             </div>
         </div>
     </div>
+</div>
+
+
+<div class="quote" *ngIf="quote">
+    {{quote.quoteText}} <small>{{quote.quoteAuthor}}</small>
 </div>

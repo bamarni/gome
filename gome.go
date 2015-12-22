@@ -16,11 +16,13 @@ type AppConfig struct {
 	Long        string
 	ForecastKey string
 	VbbKey      string
+	HttpDir     string
+	HttpAddr    string
 }
 
 type AppHandler struct {
 	Config *AppConfig
-	Handle func(e *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error)
+	Handle func(c *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error)
 }
 
 type Weather struct {
@@ -28,6 +30,7 @@ type Weather struct {
 	Summary     string
 	Icon        string
 	Temperature int
+	Unit        string
 }
 
 type Departure struct {
@@ -56,17 +59,18 @@ func (h AppHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func weatherHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	f, err := forecast.Get(config.ForecastKey, config.Lat, config.Long, "now", forecast.CA)
+func weatherHandler(c *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	f, err := forecast.Get(c.ForecastKey, c.Lat, c.Long, "now", forecast.CA)
 	if err != nil {
 		return nil, err
 	}
 
 	weather := Weather{
-		f.Timezone,
-		f.Currently.Summary,
-		f.Currently.Icon,
-		Round(f.Currently.Temperature),
+		Timezone: f.Timezone,
+		Summary: f.Daily.Data[0].Summary,
+		Icon: f.Daily.Data[0].Icon,
+		Temperature: Round(f.Daily.Data[0].TemperatureMax),
+		Unit: "°C",
 	}
 
 	return weather, nil
@@ -94,23 +98,20 @@ func vbbHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (inte
 }
 
 func main() {
-	appConfig := &AppConfig{
+	conf := &AppConfig{
 		Location:    "Europe/Berlin",
 		Lat:         "52.5167",
 		Long:        "13.4",
 		ForecastKey: os.Getenv("FORECAST_API_KEY"),
 		VbbKey:      os.Getenv("VBB_API_KEY"),
+		HttpDir:     "/web",
+		HttpAddr:    ":80",
 	}
 
-	if appConfig.ForecastKey == "" || appConfig.VbbKey == "" {
-		log.Fatal("$FORECAST_API_KEY and $VBB_API_KEY must be set")
-	}
+	http.Handle("/weather.json", AppHandler{conf, weatherHandler})
+	http.Handle("/vbb.json", AppHandler{conf, vbbHandler})
+	http.Handle("/", http.FileServer(http.Dir(conf.HttpDir)))
 
-	mux := http.NewServeMux()
-
-	mux.Handle("/weather.json", AppHandler{appConfig, weatherHandler})
-	mux.Handle("/vbb.json", AppHandler{appConfig, vbbHandler})
-	mux.Handle("/", http.FileServer(http.Dir("/web")))
-
-	log.Fatal(http.ListenAndServe(":80", mux))
+	log.Printf("Listening at %s...", conf.HttpAddr)
+	log.Fatal(http.ListenAndServe(conf.HttpAddr, nil))
 }

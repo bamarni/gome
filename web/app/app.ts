@@ -1,26 +1,30 @@
-import {bootstrap, Component, NgIf, View} from 'angular2/angular2';
-import {HTTP_BINDINGS, Http, Response} from 'angular2/http';
+import {Component} from 'angular2/core';
+import {Http, Jsonp} from 'angular2/http';
 
 @Component({
     selector: 'div#main',
-    bindings: [HTTP_BINDINGS]
-})
-
-@View({
-    templateUrl: './app/app.html',
-    directives: [NgIf]
+    templateUrl: './app/app.html'
 })
 
 export class App {
+    time:       Date = new Date();
     weather:    Object;
     departures: Object;
-    time:       Date = new Date();
+    quote:      Object;
 
-    constructor(http:Http) {
+    constructor(http: Http, jsonp: Jsonp) {
+        // time
         this.refreshDate();
 
-        http.get('weather.json').map((res: Response) => res.json()).subscribe(res => this.weather = res);
-        http.get('vbb.json').map((res: Response) => res.json()).subscribe(res => this.departures = res);
+        // weather
+        http.get('weather.json').subscribe(res => this.weather = res.json());
+
+        // departures
+        http.get('vbb.json').subscribe(res => this.departures = res.json());
+
+        // quote
+        var quoteApiEndpoint: string = "http://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=JSONP_CALLBACK";
+        jsonp.get(quoteApiEndpoint).subscribe(res => this.quote = res.json());
     }
 
     refreshDate() {
@@ -33,9 +37,6 @@ export class App {
     getTime() {
         return ("0" + this.time.getHours()).slice(-2) +
             ":" + ("0" + this.time.getMinutes()).slice(-2) +
-            ":" + ("0" + this.time.getSeconds()).slice(-2)
-            ;
+            ":" + ("0" + this.time.getSeconds()).slice(-2);
     }
 }
-
-bootstrap(App).catch(err => console.error(err));

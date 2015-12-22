@@ -15,7 +15,7 @@ build:
 	mkdir -p build
 
 	docker run --rm --name $(NAME)-$(INSTANCE)-node -v $(PWD)/web:/usr/src/app -w /usr/src/app \
-		node:4-slim /bin/sh -c "npm i && npm run tsc && npm run uglifyjs"
+		node:4-slim /bin/sh -c "npm i && npm run tsc"
 
 	docker run --rm --name $(NAME)-$(INSTANCE)-golang -v $(PWD):/go/src/github.com/bamarni/gome -w /go/src/github.com/bamarni/gome \
 		golang:1 /bin/sh -c "go get && CGO_ENABLED=0 go build -o ./build/gome -a -ldflags '-s' ./gome.go"
