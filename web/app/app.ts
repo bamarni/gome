@@ -10,6 +10,7 @@ export class App {
     time:       Date = new Date();
     weather:    Object;
     departures: Object;
+    jiraIssues: Object;
     quote:      Object;
 
     constructor(http: Http, jsonp: Jsonp) {
@@ -21,6 +22,9 @@ export class App {
 
         // departures
         http.get('vbb.json').subscribe(res => this.departures = res.json());
+
+        // jira issues
+        http.get('jira.json').subscribe(res => this.jiraIssues = res.json());
 
         // quote
         var quoteApiEndpoint: string = "http://api.forismatic.com/api/1.0/?method=getQuote&lang=en&format=jsonp&jsonp=JSONP_CALLBACK";

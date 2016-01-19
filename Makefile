@@ -7,7 +7,7 @@ VERSION ?= latest
 NAME = bamarni-gome
 INSTANCE ?= default
 PORTS = -p 80:80
-ENV = -e FORECAST_API_KEY -e VBB_API_KEY
+ENV = -e FORECAST_API_KEY -e VBB_API_KEY -e JIRA_BASE_URL -e JIRA_API_PATH -e JIRA_LOGIN -e JIRA_PASSWORD
 
 .PHONY: build push pull run stop rm
 

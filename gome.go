@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/bamarni/gome/vbb"
 	forecast "github.com/mlbright/forecast/v2"
+	gojira "github.com/plouc/go-jira-client"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ type AppConfig struct {
 	Long        string
 	ForecastKey string
 	VbbKey      string
+	Jira        *gojira.Jira
 	HttpDir     string
 	HttpAddr    string
 }
@@ -97,6 +99,12 @@ func vbbHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (inte
 	return deps, nil
 }
 
+func jiraHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
+	issues := config.Jira.IssuesAssignedTo(config.Jira.Auth.Login, 3, 0)
+
+	return issues, nil
+}
+
 func main() {
 	conf := &AppConfig{
 		Location:    "Europe/Berlin",
@@ -104,12 +112,22 @@ func main() {
 		Long:        "13.4",
 		ForecastKey: os.Getenv("FORECAST_API_KEY"),
 		VbbKey:      os.Getenv("VBB_API_KEY"),
+		Jira:        gojira.NewJira(
+			os.Getenv("JIRA_BASE_URL"),
+			os.Getenv("JIRA_API_PATH"),
+			"",
+			&gojira.Auth{
+				os.Getenv("JIRA_LOGIN"),
+				os.Getenv("JIRA_PASSWORD"),
+			},
+		),
 		HttpDir:     "/web",
 		HttpAddr:    ":80",
 	}
 
 	http.Handle("/weather.json", AppHandler{conf, weatherHandler})
 	http.Handle("/vbb.json", AppHandler{conf, vbbHandler})
+	http.Handle("/jira.json", AppHandler{conf, jiraHandler})
 	http.Handle("/", http.FileServer(http.Dir(conf.HttpDir)))
 
 	log.Printf("Listening at %s...", conf.HttpAddr)
