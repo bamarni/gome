@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/bamarni/gome/vbb"
+	"github.com/bamarni/vbb"
 	forecast "github.com/mlbright/forecast/v2"
 	gojira "github.com/plouc/go-jira-client"
 	"log"
@@ -16,7 +16,7 @@ type AppConfig struct {
 	Lat         string
 	Long        string
 	ForecastKey string
-	VbbKey      string
+	Vbb         *vbb.Vbb
 	Jira        *gojira.Jira
 	HttpDir     string
 	HttpAddr    string
@@ -68,18 +68,24 @@ func weatherHandler(c *AppConfig, w http.ResponseWriter, r *http.Request) (inter
 	}
 
 	weather := Weather{
-		Timezone: f.Timezone,
-		Summary: f.Daily.Data[0].Summary,
-		Icon: f.Daily.Data[0].Icon,
+		Timezone:    f.Timezone,
+		Summary:     f.Daily.Data[0].Summary,
+		Icon:        f.Daily.Data[0].Icon,
 		Temperature: Round(f.Daily.Data[0].TemperatureMax),
-		Unit: "°C",
+		Unit:        "°C",
 	}
 
 	return weather, nil
 }
 
 func vbbHandler(config *AppConfig, w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	depBoard, err := vbb.Get(config.VbbKey)
+	depRequest := &vbb.Departure{
+		StopId:    "A=1@O=Bersarinplatz (Berlin)@X=13452563@Y=52519341@U=86@L=009120516@B=1@V=3.9,@p=1449160158@",
+		Direction: "9120004",
+	}
+
+	depBoard, err := config.Vbb.GetDepartureBoard(depRequest)
+
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +117,10 @@ func main() {
 		Lat:         "52.5167",
 		Long:        "13.4",
 		ForecastKey: os.Getenv("FORECAST_API_KEY"),
-		VbbKey:      os.Getenv("VBB_API_KEY"),
-		Jira:        gojira.NewJira(
+		Vbb: &vbb.Vbb{
+			os.Getenv("VBB_API_KEY"),
+		},
+		Jira: gojira.NewJira(
 			os.Getenv("JIRA_BASE_URL"),
 			os.Getenv("JIRA_API_PATH"),
 			"",
@@ -121,8 +129,8 @@ func main() {
 				os.Getenv("JIRA_PASSWORD"),
 			},
 		),
-		HttpDir:     "/web",
-		HttpAddr:    ":80",
+		HttpDir:  "/web",
+		HttpAddr: ":80",
 	}
 
 	http.Handle("/weather.json", AppHandler{conf, weatherHandler})
